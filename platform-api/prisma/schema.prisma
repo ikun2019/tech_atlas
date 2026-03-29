@@ -1,0 +1,201 @@
+// platform-api/prisma/schema.prisma
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url = env("DATABASE_URL")
+  directUrl = env("DIRECT_URL")
+}
+
+model User {
+  id               String    @id @default(cuid())
+  supabaseId       String    @unique
+  email            String    @unique
+  name             String
+  avatarUrl        String?
+  role             Role      @default(USER)
+  stripeCustomerId String?   @unique
+  deletedAt        DateTime?
+  createdAt        DateTime  @default(now())
+  updatedAt        DateTime  @updatedAt
+
+  subscription      Subscription?
+  progresses        Progress[]
+  reviews           Review[]
+  comments          Comment[]
+  bookmarks         Bookmark[]
+  certificates      Certificate[]
+  instructorToken   InstructorToken?
+  instructorCourses Course[]          @relation("InstructorCourses")
+}
+
+enum Role {
+  USER
+  INSTRUCTOR
+  ADMIN
+}
+
+model InstructorToken {
+  id             String   @id @default(cuid())
+  instructorId   String   @unique
+  encryptedToken String
+  workspaceName  String
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  instructor User @relation(fields: [instructorId], references: [id])
+}
+
+model Category {
+  id      String   @id @default(cuid())
+  name    String
+  slug    String   @unique
+  courses Course[]
+}
+
+model Course {
+  id           String   @id @default(cuid())
+  title        String
+  description  String
+  thumbnailUrl String?
+  categoryId   String
+  instructorId String
+  isPublished  Boolean  @default(false)
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  category     Category      @relation(fields: [categoryId], references: [id])
+  instructor   User          @relation("InstructorCourses", fields: [instructorId], references: [id])
+  chapters     Chapter[]
+  reviews      Review[]
+  bookmarks    Bookmark[]
+  certificates Certificate[]
+
+  @@index([isPublished])
+}
+
+model Chapter {
+  id        String   @id @default(cuid())
+  courseId  String
+  title     String
+  order     Int
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  course  Course   @relation(fields: [courseId], references: [id], onDelete: Cascade)
+  lessons Lesson[]
+}
+
+model Lesson {
+  id           String   @id @default(cuid())
+  chapterId    String
+  title        String
+  notionPageId String
+  order        Int
+  isFree       Boolean  @default(false)
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  chapter    Chapter    @relation(fields: [chapterId], references: [id], onDelete: Cascade)
+  progresses Progress[]
+  comments   Comment[]
+}
+
+model Progress {
+  id          String   @id @default(cuid())
+  userId      String
+  lessonId    String
+  completedAt DateTime @default(now())
+
+  user   User   @relation(fields: [userId], references: [id])
+  lesson Lesson @relation(fields: [lessonId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, lessonId])
+  @@index([userId])
+}
+
+model Subscription {
+  id                   String             @id @default(cuid())
+  userId               String             @unique
+  stripeSubscriptionId String             @unique
+  stripePriceId        String
+  status               SubscriptionStatus
+  plan                 Plan
+  currentPeriodEnd     DateTime
+  cancelAtPeriodEnd    Boolean            @default(false)
+  createdAt            DateTime           @default(now())
+  updatedAt            DateTime           @updatedAt
+
+  user User @relation(fields: [userId], references: [id])
+}
+
+enum SubscriptionStatus {
+  ACTIVE
+  CANCELED
+  PAST_DUE
+  INCOMPLETE
+  TRIALING
+}
+
+enum Plan {
+  MONTHLY
+  YEARLY
+}
+
+model Review {
+  id        String   @id @default(cuid())
+  userId    String
+  courseId  String
+  rating    Int
+  body      String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  user   User   @relation(fields: [userId], references: [id])
+  course Course @relation(fields: [courseId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, courseId])
+}
+
+model Comment {
+  id        String   @id @default(cuid())
+  userId    String
+  lessonId  String
+  body      String
+  parentId  String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  user    User      @relation(fields: [userId], references: [id])
+  lesson  Lesson    @relation(fields: [lessonId], references: [id], onDelete: Cascade)
+  parent  Comment?  @relation("CommentReplies", fields: [parentId], references: [id], onDelete: Cascade)
+  replies Comment[] @relation("CommentReplies")
+}
+
+model Bookmark {
+  id        String   @id @default(cuid())
+  userId    String
+  courseId  String
+  createdAt DateTime @default(now())
+
+  user   User   @relation(fields: [userId], references: [id])
+  course Course @relation(fields: [courseId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, courseId])
+}
+
+model Certificate {
+  id        String   @id @default(cuid())
+  userId    String
+  courseId  String
+  uuid      String   @unique @default(uuid())
+  issuedAt  DateTime @default(now())
+
+  user   User   @relation(fields: [userId], references: [id])
+  course Course @relation(fields: [courseId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, courseId])
+}

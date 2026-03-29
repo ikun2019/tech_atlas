@@ -1,0 +1,82 @@
+services:
+  traefik:
+    image: traefik:v3
+    command:
+      - --api.insecure=true
+      - --providers.docker=true
+      - --providers.docker.exposedbydefault=false
+      - --entrypoints.web.address=:80
+    ports:
+      - "80:80"
+      - "8080:8080"
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+    labels:
+      - traefik.enable=true
+      - traefik.http.routers.traefik-dashboard.rule=Host(`traefik.localhost`)
+      - traefik.http.routers.traefik-dashboard.service=api@internal
+    networks:
+      - platform-net
+
+  web:
+    build:
+      context: ../platform-web
+      dockerfile: Dockerfile.dev
+    ports:
+      - "3000:3000"
+    volumes:
+      - ../platform-web:/app
+    env_file:
+      - ../.env
+    depends_on:
+      - api
+    labels:
+      - traefik.enable=true
+      - "traefik.http.routers.web.rule=Host(`localhost`) && !PathPrefix(`/api`)"
+      - traefik.http.services.web.loadbalancer.server.port=3000
+      # HMR (WebSocket) support
+      - traefik.http.middlewares.web-headers.headers.customrequestheaders.X-Forwarded-Proto=http
+      - traefik.http.routers.web.middlewares=web-headers
+    networks:
+      - platform-net
+
+  api:
+    build:
+      context: ../platform-api
+      dockerfile: Dockerfile.dev
+    ports:
+      - "4000:4000"
+    volumes:
+      - ../platform-api:/app
+    env_file:
+      - ../.env
+    depends_on:
+      redis:
+        condition: service_healthy
+    labels:
+      - traefik.enable=true
+      - "traefik.http.routers.api.rule=Host(`localhost`) && PathPrefix(`/api`)"
+      - traefik.http.services.api.loadbalancer.server.port=4000
+    networks:
+      - platform-net
+
+  redis:
+    image: redis:7-alpine
+    expose:
+      - "6379"
+    volumes:
+      - redisdata:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 3
+    networks:
+      - platform-net
+
+networks:
+  platform-net:
+    driver: bridge
+
+volumes:
+  redisdata:
