@@ -1,9 +1,8 @@
 import { api } from '@/lib/api'
 import type { ApiResponse, User, Course, PaginatedResponse } from '@/types/api'
 import type { Role } from '@/types/api'
-import { env } from '@/lib/env'
 
-const SERVER_API = env.API_INTERNAL_URL
+const SERVER_API = process.env.API_INTERNAL_URL ?? 'http://api:4000/api/v1'
 
 export interface AdminStats {
   totalUsers: number

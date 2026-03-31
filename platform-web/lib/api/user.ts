@@ -1,6 +1,5 @@
 import { api } from '@/lib/api'
 import type { ApiResponse, User } from '@/types/api'
-import { env } from '@/lib/env'
 
 export interface ProgressSummary {
   courseId: string
@@ -21,7 +20,7 @@ export interface SubscriptionStatus {
   cancelAtPeriodEnd: boolean
 }
 
-const SERVER_API = env.API_INTERNAL_URL
+const SERVER_API = process.env.API_INTERNAL_URL ?? 'http://api:4000/api/v1'
 
 export async function getMeServer(accessToken: string): Promise<User | null> {
   const res = await fetch(`${SERVER_API}/auth/me`, {

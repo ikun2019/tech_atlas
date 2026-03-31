@@ -66,6 +66,7 @@ services:
       NOTION_OAUTH_CLIENT_SECRET_FILE: /run/secrets/notion_oauth_client_secret
       RESEND_API_KEY_FILE: /run/secrets/resend_api_key
       SENTRY_DSN_FILE: /run/secrets/sentry_dsn
+      SHUTDOWN_TIMEOUT: 10000
     secrets:
       - database_url
       - supabase_url

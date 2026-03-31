@@ -47,6 +47,26 @@ export async function getStatus(userId: string): Promise<SubscriptionStatus | nu
 	return status;
 }
 
+export async function getFullStatus(userId: string): Promise<{
+	hasSubscription: boolean;
+	status: SubscriptionStatus | null;
+	plan: import('@prisma/client').Plan | null;
+	currentPeriodEnd: Date | null;
+	cancelAtPeriodEnd: boolean;
+}> {
+	const subscription = await subscriptionRepository.findByUserId(userId);
+	if (!subscription) {
+		return { hasSubscription: false, status: null, plan: null, currentPeriodEnd: null, cancelAtPeriodEnd: false };
+	}
+	return {
+		hasSubscription: true,
+		status: subscription.status,
+		plan: subscription.plan,
+		currentPeriodEnd: subscription.currentPeriodEnd,
+		cancelAtPeriodEnd: subscription.cancelAtPeriodEnd,
+	};
+}
+
 export async function createCheckoutSession(
 	userId: string,
 	plan: 'MONTHLY' | 'YEARLY',

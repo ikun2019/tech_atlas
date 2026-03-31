@@ -8,7 +8,9 @@ export const metadata: Metadata = { title: 'プロフィール編集 | TechAtlas
 
 export default async function ProfilePage() {
   const supabase = await createClient()
-  const { data: { session } } = await supabase.auth.getSession()
+  const {
+    data: { session },
+  } = await supabase.auth.getSession()
   if (!session) redirect('/login?next=/dashboard/profile')
 
   const user = await getMeServer(session.access_token)

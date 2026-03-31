@@ -1,8 +1,7 @@
 import { api } from '@/lib/api'
 import type { ApiResponse, Course, Chapter, Lesson } from '@/types/api'
-import { env } from '@/lib/env'
 
-const SERVER_API = env.API_INTERNAL_URL
+const SERVER_API = process.env.API_INTERNAL_URL ?? 'http://api:4000/api/v1'
 
 // サーバー側
 export async function getOwnCoursesServer(accessToken: string): Promise<Course[]> {

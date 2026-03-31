@@ -7,7 +7,6 @@ import { z } from 'zod'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
-import { Textarea } from '@/components/ui/textarea'
 import { updateProfile } from '@/lib/api/user'
 import type { User } from '@/types/api'
 
@@ -56,11 +55,19 @@ export function ProfileForm({ user }: ProfileFormProps) {
 
       <div className="space-y-1.5">
         <Label htmlFor="avatarUrl">アバター URL（任意）</Label>
-        <Input id="avatarUrl" type="url" placeholder="https://..." aria-invalid={!!errors.avatarUrl} {...register('avatarUrl')} />
+        <Input
+          id="avatarUrl"
+          type="url"
+          placeholder="https://..."
+          aria-invalid={!!errors.avatarUrl}
+          {...register('avatarUrl')}
+        />
         {errors.avatarUrl && <p className="text-destructive text-sm">{errors.avatarUrl.message}</p>}
       </div>
 
-      {success && <p className="text-sm text-green-600 dark:text-green-400">プロフィールを更新しました</p>}
+      {success && (
+        <p className="text-sm text-green-600 dark:text-green-400">プロフィールを更新しました</p>
+      )}
       {error && <p className="text-destructive text-sm">{error}</p>}
 
       <Button type="submit" disabled={isSubmitting}>

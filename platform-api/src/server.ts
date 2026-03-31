@@ -7,6 +7,8 @@ import { env } from './utils/env.js';
 import v1Router from './routes/v1/index.js';
 import { errorHandler } from './middlewares/errorHandler.js';
 
+import type { Socket } from 'node:net';
+
 const app = express();
 
 // セキュリティ・共通ミドルウェア
@@ -39,7 +41,45 @@ app.use('/api/v1', v1Router);
 // 集約エラーハンドラー（必ず最後に設定）
 app.use(errorHandler);
 
-console.log('API_PORT', env.API_PORT);
-app.listen(env.API_PORT, () => {
+// Server start
+const server = app.listen(env.API_PORT, () => {
 	console.log(`API server is running on port ${env.API_PORT}`);
 });
+
+const SHUTDOWN_TIMEOUT = Number.isFinite(Number(env.SHUTDOWN_TIMEOUT))
+	? Number(env.SHUTDOWN_TIMEOUT)
+	: 10000;
+let isShuttingdown = false;
+// 進行中のSocketを管理
+const connections: Set<Socket> = new Set();
+server.on('connection', (socket: Socket) => {
+	connections.add(socket);
+	socket.on('close', () => connections.delete(socket));
+});
+
+// * Graceful Shutdown
+const shutdown = (signal: string) => {
+	if (isShuttingdown) return;
+	isShuttingdown = true;
+	console.log(`🔴 [${signal}] Starting Graceful shutdown...`);
+
+	// -> 新規受付は停止(進行中の処理は完了まで待機)
+	server.close((err) => {
+		if (err) {
+			console.error('Error closing server:', err);
+			process.exitCode = 1;
+		}
+		console.log('🟢 HTTP server closed');
+		process.exit();
+	});
+
+	// -> タイムアウト超過時は強制終了
+	setTimeout(() => {
+		console.log('⚠️ Forcing shutdown');
+		for (const socket of connections) socket.destroy();
+		process.exit(1);
+	}, SHUTDOWN_TIMEOUT).unref();
+};
+
+process.on('SIGTERM', () => shutdown('SIGTERM'));
+process.on('SIGINT', () => shutdown('SIGINT'));

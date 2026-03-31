@@ -1,6 +1,5 @@
 import type { ApiResponse } from '@/types/api'
 import { api } from '@/lib/api'
-import { env } from '@/lib/env'
 
 export interface LessonDetail {
   id: string
@@ -38,7 +37,7 @@ export async function getProgress(courseId: string): Promise<ProgressData> {
 }
 
 // サーバー側フェッチ（Server Component 用）
-const SERVER_API = env.API_INTERNAL_URL
+const SERVER_API = process.env.API_INTERNAL_URL ?? 'http://api:4000/api/v1'
 
 export async function getLessonServer(
   lessonId: string,
