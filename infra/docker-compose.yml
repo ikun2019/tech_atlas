@@ -22,12 +22,21 @@ services:
     build:
       context: ../platform-web
       dockerfile: Dockerfile.dev
+      args:
+        NEXT_PUBLIC_APP_URL: ${NEXT_PUBLIC_APP_URL}
+        NEXT_PUBLIC_SUPABASE_URL: ${NEXT_PUBLIC_SUPABASE_URL}
+        NEXT_PUBLIC_SUPABASE_ANON_KEY: ${NEXT_PUBLIC_SUPABASE_ANON_KEY}
+        NEXT_PUBLIC_API_URL: ${NEXT_PUBLIC_API_URL}
+    environment:
+      NEXT_PUBLIC_APP_URL: ${NEXT_PUBLIC_APP_URL}
+      NEXT_PUBLIC_SUPABASE_URL: ${NEXT_PUBLIC_SUPABASE_URL}
+      NEXT_PUBLIC_SUPABASE_ANON_KEY: ${NEXT_PUBLIC_SUPABASE_ANON_KEY}
+      NEXT_PUBLIC_API_URL: ${NEXT_PUBLIC_API_URL}
+      API_INTERNAL_URL: ${API_INTERNAL_URL}
     ports:
       - "3000:3000"
     volumes:
       - ../platform-web:/app
-    env_file:
-      - ../.env
     depends_on:
       - api
     labels:
@@ -44,12 +53,30 @@ services:
     build:
       context: ../platform-api
       dockerfile: Dockerfile.dev
+    environment:
+      RESEND_FROM_EMAIL: ${RESEND_FROM_EMAIL}
+      DATABASE_URL: ${DATABASE_URL}
+      SUPABASE_URL: ${SUPABASE_URL}
+      SUPABASE_SERVICE_ROLE_KEY: ${SUPABASE_SERVICE_ROLE_KEY}
+      STRIPE_SECRET_KEY: ${STRIPE_SECRET_KEY}
+      STRIPE_WEBHOOK_SECRET: ${STRIPE_WEBHOOK_SECRET}
+      STRIPE_PRICE_MONTHLY: ${STRIPE_PRICE_MONTHLY}
+      STRIPE_PRICE_YEARLY: ${STRIPE_PRICE_YEARLY}
+      NOTION_ENCRYPTION_KEY: ${NOTION_ENCRYPTION_KEY}
+      NOTION_OAUTH_CLIENT_ID: ${NOTION_OAUTH_CLIENT_ID}
+      NOTION_OAUTH_REDIRECT_URI: ${NOTION_OAUTH_REDIRECT_URI}
+      NOTION_OAUTH_CLIENT_SECRET: ${NOTION_OAUTH_CLIENT_SECRET}
+      RESEND_API_KEY: ${RESEND_API_KEY}
+      SENTRY_DSN: ${SENTRY_DSN}
+      SHUTDOWN_TIMEOUT: 10000
+      REDIS_URL: ${REDIS_URL}
+      ALLOW_ORIGIN: ${ALLOW_ORIGIN}
+      API_PORT: ${API_PORT}
+      APP_URL: ${APP_URL}
     ports:
       - "4000:4000"
     volumes:
       - ../platform-api:/app
-    env_file:
-      - ../.env
     depends_on:
       redis:
         condition: service_healthy

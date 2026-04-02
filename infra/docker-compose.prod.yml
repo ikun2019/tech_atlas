@@ -1,142 +1,18 @@
+# Docker ImageをビルドするためのCompose File
 services:
-  traefik:
-    image: traefik:v3
-    command:
-      - --configFile=/etc/traefik/traefik.yml
-      - --providers.docker.swarmMode=true
-      - --providers.docker.exposedbydefault=false
-    ports:
-      - "80:80"
-      - "443:443"
-    volumes:
-      - /var/run/docker.sock:/var/run/docker.sock:ro
-      - ./traefik/traefik.yml:/etc/traefik/traefik.yml:ro
-      - letsencrypt:/letsencrypt
-    networks:
-      - platform-net
-    deploy:
-      placement:
-        constraints:
-          - node.role == manager
-
   web:
-    image: your-registry/platform-web:latest
-    expose:
-      - "3000"
-    environment:
-      NEXT_PUBLIC_SUPABASE_URL: https://your-project.supabase.co
-      NEXT_PUBLIC_SUPABASE_ANON_KEY: your-anon-key
-      NEXT_PUBLIC_API_URL: https://example.com/api/v1
-      NEXT_PUBLIC_APP_URL: https://example.com
-      API_INTERNAL_URL: http://api:4000/api/v1
-    networks:
-      - platform-net
-    deploy:
-      replicas: 2
-      update_config:
-        order: start-first
-      labels:
-        - traefik.enable=true
-        - "traefik.http.routers.web.rule=Host(`example.com`) && !PathPrefix(`/api`)"
-        - traefik.http.routers.web.entrypoints=websecure
-        - traefik.http.routers.web.tls.certresolver=letsencrypt
-        - traefik.http.services.web.loadbalancer.server.port=3000
+    image: ${WEB_IMAGE}:${TAG:-latest}
+    build:
+      context: ../platform-web
+      dockerfile: Dockerfile
+      args:
+        NEXT_PUBLIC_APP_URL: ${NEXT_PUBLIC_APP_URL}
+        NEXT_PUBLIC_SUPABASE_URL: ${NEXT_PUBLIC_SUPABASE_URL}
+        NEXT_PUBLIC_SUPABASE_ANON_KEY: ${NEXT_PUBLIC_SUPABASE_ANON_KEY}
+        NEXT_PUBLIC_API_URL: ${NEXT_PUBLIC_API_URL}
 
   api:
-    image: your-registry/platform-api:latest
-    expose:
-      - "4000"
-    environment:
-      NODE_ENV: production
-      API_PORT: "4000"
-      ALLOW_ORIGIN: https://example.com
-      REDIS_URL: redis://redis:6379
-      APP_URL: https://example.com
-      RESEND_FROM_EMAIL: noreply@example.com
-      DATABASE_URL_FILE: /run/secrets/database_url
-      SUPABASE_URL_FILE: /run/secrets/supabase_url
-      SUPABASE_SERVICE_ROLE_KEY_FILE: /run/secrets/supabase_service_role_key
-      STRIPE_SECRET_KEY_FILE: /run/secrets/stripe_secret_key
-      STRIPE_WEBHOOK_SECRET_FILE: /run/secrets/stripe_webhook_secret
-      STRIPE_PRICE_MONTHLY_FILE: /run/secrets/stripe_price_monthly
-      STRIPE_PRICE_YEARLY_FILE: /run/secrets/stripe_price_yearly
-      NOTION_ENCRYPTION_KEY_FILE: /run/secrets/notion_encryption_key
-      NOTION_OAUTH_CLIENT_ID_FILE: /run/secrets/notion_oauth_client_id
-      NOTION_OAUTH_REDIRECT_URI_FILE: /run/secrets/notion_oauth_redirect_url
-      NOTION_OAUTH_CLIENT_SECRET_FILE: /run/secrets/notion_oauth_client_secret
-      RESEND_API_KEY_FILE: /run/secrets/resend_api_key
-      SENTRY_DSN_FILE: /run/secrets/sentry_dsn
-      SHUTDOWN_TIMEOUT: 10000
-    secrets:
-      - database_url
-      - supabase_url
-      - supabase_service_role_key
-      - stripe_secret_key
-      - stripe_webhook_secret
-      - stripe_price_monthly
-      - stripe_price_yearly
-      - notion_encryption_key
-      - notion_oauth_client_id
-      - notion_oauth_redirect_url
-      - notion_oauth_client_secret
-      - resend_api_key
-      - sentry_dsn
-    networks:
-      - platform-net
-    deploy:
-      replicas: 2
-      update_config:
-        order: start-first
-      labels:
-        - traefik.enable=true
-        - "traefik.http.routers.api.rule=Host(`example.com`) && PathPrefix(`/api`)"
-        - traefik.http.routers.api.entrypoints=websecure
-        - traefik.http.routers.api.tls.certresolver=letsencrypt
-        - traefik.http.services.api.loadbalancer.server.port=4000
-
-  redis:
-    image: redis:7-alpine
-    expose:
-      - "6379"
-    volumes:
-      - redisdata:/data
-    networks:
-      - platform-net
-    deploy:
-      replicas: 1
-
-networks:
-  platform-net:
-    driver: overlay
-
-volumes:
-  letsencrypt:
-  redisdata:
-
-secrets:
-  database_url:
-    external: true
-  supabase_url:
-    external: true
-  supabase_service_role_key:
-    external: true
-  stripe_secret_key:
-    external: true
-  stripe_webhook_secret:
-    external: true
-  stripe_price_monthly:
-    external: true
-  stripe_price_yearly:
-    external: true
-  notion_encryption_key:
-    external: true
-  notion_oauth_client_id:
-    external: true
-  notion_oauth_redirect_url:
-    external: true
-  notion_oauth_client_secret:
-    external: true
-  resend_api_key:
-    external: true
-  sentry_dsn:
-    external: true
+    image: ${API_IMAGE}:${TAG:-latest}
+    build:
+      context: ../platform-api
+      dockerfile: Dockerfile

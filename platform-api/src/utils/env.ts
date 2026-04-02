@@ -14,7 +14,6 @@ const PlainEnvSchema = z.object({
 	API_PORT: z.string(),
 	REDIS_URL: z.string().min(1, 'REDIS_URL is needed'),
 	APP_URL: z.string().min(1, 'APP_URL is needed'),
-	RESEND_FROM_EMAIL: z.string().min(1, 'RESEND_FROM_EMAIL is needed'),
 	SHUTDOWN_TIMEOUT: z.string().min(1, 'SHUTDOWN_TIMEOUT is needed'),
 });
 
@@ -32,8 +31,8 @@ export const env = Object.freeze({
 	API_PORT: raw.API_PORT,
 	REDIS_URL: raw.REDIS_URL,
 	APP_URL: raw.APP_URL,
-	RESEND_FROM_EMAIL: raw.RESEND_FROM_EMAIL,
 	SHUTDOWN_TIMEOUT: raw.SHUTDOWN_TIMEOUT,
+	RESEND_FROM_EMAIL: readEnvOrFile('RESEND_FROM_EMAIL'),
 	DATABASE_URL: readEnvOrFile('DATABASE_URL'),
 	SUPABASE_URL: readEnvOrFile('SUPABASE_URL'),
 	SUPABASE_SERVICE_ROLE_KEY: readEnvOrFile('SUPABASE_SERVICE_ROLE_KEY'),

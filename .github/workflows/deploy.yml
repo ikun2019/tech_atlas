@@ -1,0 +1,44 @@
+name: Deploy to Docker Swarm
+
+on:
+  workflow_call:
+    secrets:
+      DOCKERHUB_USERNAME:
+        required: true
+      DOCKERHUB_TOKEN:
+        required: true
+      SSH_HOST:
+        required: true
+      SSH_USER:
+        required: true
+      SSH_PRIVATE_KEY:
+        required: true
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Rolling update SSH
+        uses: appleboy/ssh-action@v1.2.0
+        env:
+          DOCKERHUB_USERNAME: ${{ secrets.DOCKERHUB_USERNAME }}
+          DOCKERHUB_TOKEN: ${{ secrets.DOCKERHUB_TOKEN }}
+          WEB_IMAGE: ${{secrets.DOCKERHUB_USERNAME}}/platform-web
+          API_IMAGE: ${{secrets.DOCKERHUB_USERNAME}}/platform-api
+          TAG: ${{github.sha}}
+        with:
+          host: ${{secrets.SSH_HOST}}
+          username: ${{secrets.SSH_USER}}
+          key: ${{secrets.SSH_PRIVATE_KEY}}
+          envs: DOCKERHUB_USERNAME,DOCKERHUB_TOKEN,WEB_IMAGE,API_IMAGE,TAG
+          script: |
+            set -euo pipefail
+            docker login -u "$DOCKERHUB_USERNAME" -p "$DOCKERHUB_TOKEN"
+            docker pull "$WEB_IMAGE:$TAG"
+            docker pull "$API_IMAGE:$TAG"
+            docker service update \
+              --image "$WEB_IMAGE:$TAG" \
+              --with-registry-auth \
+              platform-web
+            docker service update \
+              --image "$API_IMAGE:$TAG" \
+              platform-api
