@@ -32,13 +32,13 @@ jobs:
           envs: DOCKERHUB_USERNAME,DOCKERHUB_TOKEN,WEB_IMAGE,API_IMAGE,TAG
           script: |
             set -euo pipefail
-            docker login -u "$DOCKERHUB_USERNAME" -p "$DOCKERHUB_TOKEN"
-            docker pull "$WEB_IMAGE:$TAG"
-            docker pull "$API_IMAGE:$TAG"
-            docker service update \
+            echo "$DOCKERHUB_TOKEN" | sudo -S docker login -u "$DOCKERHUB_USERNAME" --password-stdin 
+            sudo docker pull "$WEB_IMAGE:$TAG"
+            sudo docker pull "$API_IMAGE:$TAG"
+            sudo docker service update \
               --image "$WEB_IMAGE:$TAG" \
               --with-registry-auth \
               platform-web
-            docker service update \
+            sudo docker service update \
               --image "$API_IMAGE:$TAG" \
               platform-api
