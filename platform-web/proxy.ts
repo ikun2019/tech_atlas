@@ -4,7 +4,7 @@ import { env } from '@/lib/env'
 
 const PROTECTED_ROUTES = ['/dashboard', '/courses', '/instructor', '/admin']
 
-export async function middleware(request: NextRequest) {
+export async function proxy(request: NextRequest) {
   let supabaseResponse = NextResponse.next({ request })
 
   const supabase = createServerClient(
