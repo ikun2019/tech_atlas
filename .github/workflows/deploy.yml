@@ -47,7 +47,7 @@ jobs:
             echo "$DOCKERHUB_TOKEN" | docker login -u "$DOCKERHUB_USERNAME" --password-stdin 
             docker pull "$WEB_IMAGE:$TAG"
             docker pull "$API_IMAGE:$TAG"
-            sudo sh -lc 'cat > /opt/.env << "EOF"
+            cat > "$HOME/.tech-atlas.env" <<EOF
               WEB_IMAGE='"$WEB_IMAGE"'
               API_IMAGE='"$API_IMAGE"'
               TAG='"$TAG"'
@@ -55,8 +55,8 @@ jobs:
               NEXT_PUBLIC_API_URL='"$NEXT_PUBLIC_API_URL"'
               NEXT_PUBLIC_SUPABASE_URL='"$NEXT_PUBLIC_SUPABASE_URL"'
               NEXT_PUBLIC_SUPABASE_ANON_KEY='"$NEXT_PUBLIC_SUPABASE_ANON_KEY"'
-            EOF'
+            EOF
             set -a
-            source /opt/.env
+            source "$HOME/.tech-atlas.env"
             set +a
             docker stack deploy --with-registry-auth --compose-file /opt/docker-stack.yml tech-atlas
