@@ -1,23 +1,23 @@
 entryPoints:
   web:
-    address: ":80"
+    address: ':80'
     http:
       redirections:
         entryPoint:
           to: websecure
           scheme: https
   websecure:
-    address: ":443"
+    address: ':443'
 
 providers:
-  docker:
-    swarmMode: true
+  swarm:
+    endpoint: 'unix:///var/run/docker.sock'
     exposedByDefault: false
 
 certificatesResolvers:
   letsencrypt:
     acme:
-      email: admin@example.com
+      email: isao.miyagawa@outlook.jp
       storage: /letsencrypt/acme.json
       httpChallenge:
         entryPoint: web
