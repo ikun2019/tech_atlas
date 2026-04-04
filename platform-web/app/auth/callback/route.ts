@@ -29,7 +29,7 @@ export async function GET(request: NextRequest) {
 
   // バックエンド DB にユーザーを同期
   try {
-    await fetch(`${process.env.NEXT_PUBLIC_API_URL}/auth/sync`, {
+    await fetch(`${env.NEXT_PUBLIC_API_URL}/auth/sync`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -41,5 +41,6 @@ export async function GET(request: NextRequest) {
     console.error('Failed to sync user with backend')
   }
 
-  return NextResponse.redirect(`${origin}${next}`)
+  const safeNext = next.startsWith('/') ? next : '/dashboard'
+  return NextResponse.redirect(`${appOrigin}${safeNext}`)
 }

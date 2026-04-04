@@ -62,6 +62,5 @@ jobs:
             EOF
             set -a
             source "$HOME/.tech-atlas.env"
-            echo "NEXT_PUBLIC_APP_URL len=${#NEXT_PUBLIC_APP_URL}"
             set +a
             docker stack deploy --with-registry-auth --compose-file /opt/docker-stack.yml tech-atlas
