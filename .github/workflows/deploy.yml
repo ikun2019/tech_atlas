@@ -2,6 +2,16 @@ name: Deploy to Docker Swarm
 
 on:
   workflow_call:
+    inputs:
+      NEXT_PUBLIC_APP_URL:
+        type: string
+        required: true
+      NEXT_PUBLIC_API_URL:
+        type: string
+        required: true
+      NEXT_PUBLIC_SUPABASE_URL:
+        type: string
+        required: true
     secrets:
       DOCKERHUB_USERNAME:
         required: true
@@ -12,12 +22,6 @@ on:
       SSH_USER:
         required: true
       SSH_PRIVATE_KEY:
-        required: true
-      NEXT_PUBLIC_APP_URL:
-        required: true
-      NEXT_PUBLIC_API_URL:
-        required: true
-      NEXT_PUBLIC_SUPABASE_URL:
         required: true
       NEXT_PUBLIC_SUPABASE_ANON_KEY:
         required: true
@@ -48,15 +52,16 @@ jobs:
             docker pull "$WEB_IMAGE:$TAG"
             docker pull "$API_IMAGE:$TAG"
             cat > "$HOME/.tech-atlas.env" <<EOF
-              WEB_IMAGE="$WEB_IMAGE"
-              API_IMAGE="$API_IMAGE"
-              TAG="$TAG"
-              NEXT_PUBLIC_APP_URL="$NEXT_PUBLIC_APP_URL"
-              NEXT_PUBLIC_API_URL="$NEXT_PUBLIC_API_URL"
-              NEXT_PUBLIC_SUPABASE_URL="$NEXT_PUBLIC_SUPABASE_URL"
-              NEXT_PUBLIC_SUPABASE_ANON_KEY="$NEXT_PUBLIC_SUPABASE_ANON_KEY"
+            WEB_IMAGE="$WEB_IMAGE"
+            API_IMAGE="$API_IMAGE"
+            TAG="$TAG"
+            NEXT_PUBLIC_APP_URL="$NEXT_PUBLIC_APP_URL"
+            NEXT_PUBLIC_API_URL="$NEXT_PUBLIC_API_URL"
+            NEXT_PUBLIC_SUPABASE_URL="$NEXT_PUBLIC_SUPABASE_URL"
+            NEXT_PUBLIC_SUPABASE_ANON_KEY="$NEXT_PUBLIC_SUPABASE_ANON_KEY"
             EOF
             set -a
             source "$HOME/.tech-atlas.env"
+            echo "NEXT_PUBLIC_APP_URL len=${#NEXT_PUBLIC_APP_URL}"
             set +a
             docker stack deploy --with-registry-auth --compose-file /opt/docker-stack.yml tech-atlas

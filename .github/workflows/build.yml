@@ -10,6 +10,13 @@ jobs:
     env:
       DOCKERHUB_USERNAME: ${{secrets.DOCKERHUB_USERNAME}}
       DOCKERHUB_TOKEN: ${{secrets.DOCKERHUB_TOKEN}}
+      WEB_IMAGE: ${{secrets.DOCKERHUB_USERNAME}}/platform-web
+      API_IMAGE: ${{secrets.DOCKERHUB_USERNAME}}/platform-api
+      TAG: ${{github.sha}}
+      NEXT_PUBLIC_API_URL: ${{vars.NEXT_PUBLIC_API_URL}}
+      NEXT_PUBLIC_APP_URL: ${{vars.NEXT_PUBLIC_APP_URL}}
+      NEXT_PUBLIC_SUPABASE_URL: ${{vars.NEXT_PUBLIC_SUPABASE_URL}}
+      NEXT_PUBLIC_SUPABASE_ANON_KEY: ${{secrets.NEXT_PUBLIC_SUPABASE_ANON_KEY}}
     steps:
       - uses: actions/checkout@v4
       - uses: docker/setup-buildx-action@v3
@@ -18,27 +25,20 @@ jobs:
           username: ${{env.DOCKERHUB_USERNAME}}
           password: ${{env.DOCKERHUB_TOKEN}}
       - name: Build and push Docker images
-        env:
-          WEB_IMAGE: ${{secrets.DOCKERHUB_USERNAME}}/platform-web
-          API_IMAGE: ${{secrets.DOCKERHUB_USERNAME}}/platform-api
-          TAG: ${{github.sha}}
-          NEXT_PUBLIC_API_URL: ${{vars.NEXT_PUBLIC_API_URL}}
-          NEXT_PUBLIC_APP_URL: ${{vars.NEXT_PUBLIC_APP_URL}}
-          NEXT_PUBLIC_SUPABASE_URL: ${{vars.NEXT_PUBLIC_SUPABASE_URL}}
-          NEXT_PUBLIC_SUPABASE_ANON_KEY: ${{secrets.NEXT_PUBLIC_SUPABASE_ANON_KEY}}
         run: |
           docker compose -f infra/docker-compose.prod.yml build
           docker compose -f infra/docker-compose.prod.yml push
   deploy:
     needs: build
     uses: ./.github/workflows/deploy.yml
+    with:
+      NEXT_PUBLIC_APP_URL: ${{vars.NEXT_PUBLIC_APP_URL}}
+      NEXT_PUBLIC_API_URL: ${{vars.NEXT_PUBLIC_API_URL}}
+      NEXT_PUBLIC_SUPABASE_URL: ${{vars.NEXT_PUBLIC_SUPABASE_URL}}
     secrets:
       DOCKERHUB_USERNAME: ${{secrets.DOCKERHUB_USERNAME}}
       DOCKERHUB_TOKEN: ${{secrets.DOCKERHUB_TOKEN}}
       SSH_HOST: ${{secrets.SSH_HOST}}
       SSH_USER: ${{secrets.SSH_USER}}
       SSH_PRIVATE_KEY: ${{secrets.SSH_PRIVATE_KEY}}
-      NEXT_PUBLIC_APP_URL: ${{vars.NEXT_PUBLIC_APP_URL}}
-      NEXT_PUBLIC_API_URL: ${{vars.NEXT_PUBLIC_API_URL}}
-      NEXT_PUBLIC_SUPABASE_URL: ${{vars.NEXT_PUBLIC_SUPABASE_URL}}
       NEXT_PUBLIC_SUPABASE_ANON_KEY: ${{secrets.NEXT_PUBLIC_SUPABASE_ANON_KEY}}
