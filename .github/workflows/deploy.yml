@@ -48,13 +48,13 @@ jobs:
             docker pull "$WEB_IMAGE:$TAG"
             docker pull "$API_IMAGE:$TAG"
             cat > "$HOME/.tech-atlas.env" <<EOF
-              WEB_IMAGE='"$WEB_IMAGE"'
-              API_IMAGE='"$API_IMAGE"'
-              TAG='"$TAG"'
-              NEXT_PUBLIC_APP_URL='"$NEXT_PUBLIC_APP_URL"'
-              NEXT_PUBLIC_API_URL='"$NEXT_PUBLIC_API_URL"'
-              NEXT_PUBLIC_SUPABASE_URL='"$NEXT_PUBLIC_SUPABASE_URL"'
-              NEXT_PUBLIC_SUPABASE_ANON_KEY='"$NEXT_PUBLIC_SUPABASE_ANON_KEY"'
+              WEB_IMAGE="$WEB_IMAGE"
+              API_IMAGE="$API_IMAGE"
+              TAG="$TAG"
+              NEXT_PUBLIC_APP_URL="$NEXT_PUBLIC_APP_URL"
+              NEXT_PUBLIC_API_URL="$NEXT_PUBLIC_API_URL"
+              NEXT_PUBLIC_SUPABASE_URL="$NEXT_PUBLIC_SUPABASE_URL"
+              NEXT_PUBLIC_SUPABASE_ANON_KEY="$NEXT_PUBLIC_SUPABASE_ANON_KEY"
             EOF
             set -a
             source "$HOME/.tech-atlas.env"
