@@ -44,7 +44,7 @@ services:
         - traefik.http.routers.web.tls.certresolver=letsencrypt
         - traefik.http.services.web.loadbalancer.server.port=3000
         # Basic Auth
-        - traefik.http.middlewares.web-auth.basicauth.users=admin:$$2y$05$$VMTR4v9yNHHKnF0Vy2FB2.8JCAR0XRS881xTAfbbsdy.Y9GQpN.FG
+        - traefik.http.middlewares.web-auth.basicauth.users=admin:$$2y$$05$$VMTR4v9yNHHKnF0Vy2FB2.8JCAR0XRS881xTAfbbsdy.Y9GQpN.FG
         - traefik.http.routers.web.middlewares=web-auth@swarm
 
   api:

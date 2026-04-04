@@ -13,6 +13,14 @@ on:
         required: true
       SSH_PRIVATE_KEY:
         required: true
+      NEXT_PUBLIC_APP_URL:
+        required: true
+      NEXT_PUBLIC_API_URL:
+        required: true
+      NEXT_PUBLIC_SUPABASE_URL:
+        required: true
+      NEXT_PUBLIC_SUPABASE_ANON_KEY:
+        required: true
 jobs:
   deploy:
     runs-on: ubuntu-latest
@@ -25,21 +33,30 @@ jobs:
           WEB_IMAGE: ${{secrets.DOCKERHUB_USERNAME}}/platform-web
           API_IMAGE: ${{secrets.DOCKERHUB_USERNAME}}/platform-api
           TAG: ${{github.sha}}
+          NEXT_PUBLIC_APP_URL: ${{secrets.NEXT_PUBLIC_APP_URL}}
+          NEXT_PUBLIC_API_URL: ${{secrets.NEXT_PUBLIC_API_URL}}
+          NEXT_PUBLIC_SUPABASE_URL: ${{secrets.NEXT_PUBLIC_SUPABASE_URL}}
+          NEXT_PUBLIC_SUPABASE_ANON_KEY: ${{secrets.NEXT_PUBLIC_SUPABASE_ANON_KEY}}
         with:
           host: ${{secrets.SSH_HOST}}
           username: ${{secrets.SSH_USER}}
           key: ${{secrets.SSH_PRIVATE_KEY}}
-          envs: DOCKERHUB_USERNAME,DOCKERHUB_TOKEN,WEB_IMAGE,API_IMAGE,TAG
+          envs: DOCKERHUB_USERNAME,DOCKERHUB_TOKEN,WEB_IMAGE,API_IMAGE,TAG,NEXT_PUBLIC_APP_URL,NEXT_PUBLIC_API_URL,NEXT_PUBLIC_SUPABASE_URL,NEXT_PUBLIC_SUPABASE_ANON_KEY
           script: |
             set -euo pipefail
             echo "$DOCKERHUB_TOKEN" | docker login -u "$DOCKERHUB_USERNAME" --password-stdin 
             docker pull "$WEB_IMAGE:$TAG"
             docker pull "$API_IMAGE:$TAG"
-            docker service update \
-              --image "$WEB_IMAGE:$TAG" \
-              --with-registry-auth \
-              platform-web
-            docker service update \
-              --image "$API_IMAGE:$TAG" \
-              --with-registry-auth \
-              platform-api
+            sudo sh -lc 'cat > /opt/.env << "EOF"
+              WEB_IMAGE='"$WEB_IMAGE"'
+              API_IMAGE='"$API_IMAGE"'
+              TAG='"$TAG"'
+              NEXT_PUBLIC_APP_URL='"$NEXT_PUBLIC_APP_URL"'
+              NEXT_PUBLIC_API_URL='"$NEXT_PUBLIC_API_URL"'
+              NEXT_PUBLIC_SUPABASE_URL='"$NEXT_PUBLIC_SUPABASE_URL"'
+              NEXT_PUBLIC_SUPABASE_ANON_KEY='"$NEXT_PUBLIC_SUPABASE_ANON_KEY"'
+            EOF'
+            set -a
+            source /opt/.env
+            set +a
+            docker stack deploy --with-registry-auth --compose-file /opt/docker-stack.yml tech-atlas
