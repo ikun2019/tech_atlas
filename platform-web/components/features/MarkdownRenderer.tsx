@@ -12,14 +12,16 @@ interface MarkdownRendererProps {
 
 const components: Components = {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  code({ className, children, ...props }: any) {
-    const match = /language-(\w+)/.exec(className ?? '')
-    const isBlock = !props.inline
-    const code = String(children).replace(/\n$/, '')
-
-    if (isBlock) {
-      return <CodeBlock code={code} language={match?.[1]} />
+  pre({ children }: any) {
+    const child = Array.isArray(children) ? children[0] : children
+    if (child?.props) {
+      const { className, children: code } = child.props as { className?: string; children?: unknown }
+      const match = /language-(\w+)/.exec(className ?? '')
+      return <CodeBlock code={String(code ?? '').replace(/\n$/, '')} language={match?.[1]} />
     }
+    return <pre>{children}</pre>
+  },
+  code({ className, children, ...props }: any) {
     return (
       <code className="bg-muted rounded px-1.5 py-0.5 text-sm font-mono" {...props}>
         {children}

@@ -3,7 +3,9 @@ import Image from 'next/image'
 import Link from 'next/link'
 import type { Metadata } from 'next'
 import { BookOpen, User } from 'lucide-react'
+import { createClient } from '@/lib/supabase/server'
 import { getCourse } from '@/lib/api/courses'
+import { getSubscriptionStatusServer } from '@/lib/api/user'
 import { Curriculum } from '@/components/features/courses/Curriculum'
 import { Button } from '@/components/ui/button'
 
@@ -30,9 +32,22 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
 
 export default async function CourseDetailPage({ params }: PageProps) {
   const { courseId } = await params
-  const course = await getCourse(courseId)
+
+  const supabase = await createClient()
+  const {
+    data: { session },
+  } = await supabase.auth.getSession()
+
+  const [course, subscriptionStatus] = await Promise.all([
+    getCourse(courseId),
+    session?.access_token
+      ? getSubscriptionStatusServer(session.access_token)
+      : Promise.resolve({ hasSubscription: false, status: null, plan: null, currentPeriodEnd: null, cancelAtPeriodEnd: false }),
+  ])
 
   if (!course) notFound()
+
+  const isSubscribed = subscriptionStatus.hasSubscription
 
   return (
     <div>
@@ -88,12 +103,24 @@ export default async function CourseDetailPage({ params }: PageProps) {
                 )}
               </div>
               <div className="p-4">
-                <Button className="w-full" size="lg" asChild>
-                  <Link href="/pricing">受講を始める</Link>
-                </Button>
-                <p className="text-muted-foreground mt-2 text-center text-xs">
-                  サブスクリプションが必要です
-                </p>
+                {isSubscribed ? (
+                  <Button className="w-full" size="lg" asChild>
+                    <Link
+                      href={`/courses/${course.id}/chapters/${course.chapters?.[0]?.id}/lessons/${course.chapters?.[0]?.lessons?.[0]?.id}`}
+                    >
+                      受講を続ける
+                    </Link>
+                  </Button>
+                ) : (
+                  <>
+                    <Button className="w-full" size="lg" asChild>
+                      <Link href="/dashboard/subscription">受講を始める</Link>
+                    </Button>
+                    <p className="text-muted-foreground mt-2 text-center text-xs">
+                      サブスクリプションが必要です
+                    </p>
+                  </>
+                )}
               </div>
             </div>
           </div>
@@ -104,7 +131,7 @@ export default async function CourseDetailPage({ params }: PageProps) {
       <div className="container py-10">
         <h2 className="mb-6 text-2xl font-bold tracking-tight">カリキュラム</h2>
         {course.chapters && course.chapters.length > 0 ? (
-          <Curriculum courseId={course.id} chapters={course.chapters} />
+          <Curriculum courseId={course.id} chapters={course.chapters} isSubscribed={isSubscribed} />
         ) : (
           <p className="text-muted-foreground">カリキュラムはまだ公開されていません</p>
         )}

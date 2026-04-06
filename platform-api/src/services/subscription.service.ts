@@ -14,7 +14,7 @@ export async function hasActiveSubscription(userId: string): Promise<boolean> {
 		return cached === 'ACTIVE' || cached === 'TRIALING';
 	}
 
-	const subscription = await prisma.subscription.findUnique({
+	const subscription = await prisma.subscription.findFirst({
 		where: { userId },
 		select: { status: true },
 	});
@@ -34,7 +34,7 @@ export async function getStatus(userId: string): Promise<SubscriptionStatus | nu
 		return cached as SubscriptionStatus;
 	}
 
-	const subscription = await prisma.subscription.findUnique({
+	const subscription = await prisma.subscription.findFirst({
 		where: { userId },
 		select: { status: true },
 	});

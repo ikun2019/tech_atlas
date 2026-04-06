@@ -3,6 +3,7 @@ import type { Metadata } from 'next'
 import { createClient } from '@/lib/supabase/server'
 import { getCourse } from '@/lib/api/courses'
 import { getLessonServer } from '@/lib/api/lessons'
+import { getSubscriptionStatusServer } from '@/lib/api/user'
 import { LessonContent } from '@/components/features/lessons/LessonContent'
 import { LessonSidebar } from '@/components/features/lessons/LessonSidebar'
 import { SubscriptionGate } from '@/components/features/lessons/SubscriptionGate'
@@ -28,9 +29,12 @@ export default async function LessonPage({ params }: PageProps) {
 
   const isAuthenticated = !!session?.user
 
-  const [lesson, course] = await Promise.all([
+  const [lesson, course, subscriptionStatus] = await Promise.all([
     getLessonServer(lessonId, session?.access_token),
     getCourse(courseId),
+    session?.access_token
+      ? getSubscriptionStatusServer(session.access_token)
+      : Promise.resolve({ hasSubscription: false, status: null, plan: null, currentPeriodEnd: null, cancelAtPeriodEnd: false }),
   ])
 
   if (!lesson || !course) notFound()
@@ -42,8 +46,7 @@ export default async function LessonPage({ params }: PageProps) {
     )
   }
 
-  // サブスク確認（実際の実装ではサブスク状態をAPIから取得）
-  const isSubscribed = isAuthenticated // 簡略化：認証済みなら購読済みとして扱う（実際はAPIで確認）
+  const isSubscribed = subscriptionStatus.hasSubscription
   const isLocked = !lesson.isFree && !isSubscribed
 
   // 全レッスンのフラットリスト（前後ナビ用）
