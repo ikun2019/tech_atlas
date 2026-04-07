@@ -42,13 +42,19 @@ export default async function CourseDetailPage({ params }: PageProps) {
     getCourse(courseId),
     session?.access_token
       ? getSubscriptionStatusServer(session.access_token)
-      : Promise.resolve({ hasSubscription: false, status: null, plan: null, currentPeriodEnd: null, cancelAtPeriodEnd: false }),
+      : Promise.resolve({
+          hasSubscription: false,
+          status: null,
+          plan: null,
+          currentPeriodEnd: null,
+          cancelAtPeriodEnd: false,
+        }),
   ])
 
   if (!course) notFound()
 
   const isSubscribed = subscriptionStatus.hasSubscription
-
+  console.log('isSubscribed =>', isSubscribed)
   return (
     <div>
       {/* ヒーローセクション */}
