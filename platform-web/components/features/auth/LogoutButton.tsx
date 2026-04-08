@@ -3,12 +3,14 @@
 import { useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
 import { Button } from '@/components/ui/button'
+import { CSSProperties } from 'react'
 
 interface LogoutButtonProps {
   className?: string
+  style?: CSSProperties
 }
 
-export function LogoutButton({ className }: LogoutButtonProps) {
+export function LogoutButton({ className, style }: LogoutButtonProps) {
   const router = useRouter()
 
   async function handleLogout() {
@@ -18,7 +20,7 @@ export function LogoutButton({ className }: LogoutButtonProps) {
   }
 
   return (
-    <Button variant="ghost" size="sm" className={className} onClick={handleLogout}>
+    <Button variant="ghost" size="sm" className={className} style={style} onClick={handleLogout}>
       ログアウト
     </Button>
   )

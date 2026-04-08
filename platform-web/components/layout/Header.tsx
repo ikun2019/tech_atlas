@@ -2,7 +2,6 @@
 
 import { useEffect, useState } from 'react'
 import Link from 'next/link'
-import { usePathname } from 'next/navigation'
 import { createBrowserClient } from '@supabase/ssr'
 import type { Session } from '@supabase/supabase-js'
 import { LogoutButton } from '@/components/features/auth/LogoutButton'
@@ -12,7 +11,6 @@ export function Header() {
   const [session, setSession] = useState<Session | null>(null)
   const [role, setRole] = useState<Role | null>(null)
   const [menuOpen, setMenuOpen] = useState(false)
-  const pathname = usePathname()
 
   async function fetchRole(accessToken: string) {
     try {
@@ -54,11 +52,6 @@ export function Header() {
 
     return () => subscription.unsubscribe()
   }, [])
-
-  // パス変更でメニューを閉じる
-  useEffect(() => {
-    setMenuOpen(false)
-  }, [pathname])
 
   // メニュー開閉時にbodyスクロールを制御
   useEffect(() => {
@@ -145,7 +138,10 @@ export function Header() {
           >
             <span className="sr-only">{menuOpen ? 'Close menu' : 'Open menu'}</span>
             {/* ハンバーガー / X アイコン */}
-            <span className="relative flex h-4 w-5 flex-col items-center justify-between" aria-hidden>
+            <span
+              className="relative flex h-4 w-5 flex-col items-center justify-between"
+              aria-hidden
+            >
               <span
                 className="h-px w-full rounded-full transition-all duration-300 origin-center"
                 style={{
@@ -213,25 +209,36 @@ export function Header() {
             aria-label="メニューを閉じる"
           >
             <svg width="14" height="14" viewBox="0 0 14 14" fill="none" aria-hidden>
-              <path d="M1 1l12 12M13 1L1 13" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
+              <path
+                d="M1 1l12 12M13 1L1 13"
+                stroke="currentColor"
+                strokeWidth="1.5"
+                strokeLinecap="round"
+              />
             </svg>
           </button>
         </div>
 
         {/* ナビリンク */}
         <nav className="flex-1 overflow-y-auto px-4 py-6 flex flex-col gap-1">
-          <MobileNavLink href="/" icon="⌂">Home</MobileNavLink>
+          <MobileNavLink href="/" icon="⌂" onClick={() => setMenuOpen(false)}>
+            Home
+          </MobileNavLink>
           {(role === 'INSTRUCTOR' || role === 'ADMIN') && (
-            <MobileNavLink href="/instructor" icon="✦" accent>
+            <MobileNavLink href="/instructor" icon="✦" accent onClick={() => setMenuOpen(false)}>
               Instructor
             </MobileNavLink>
           )}
           {role === 'ADMIN' && (
-            <MobileNavLink href="/admin" icon="◆" accent>
+            <MobileNavLink href="/admin" icon="◆" accent onClick={() => setMenuOpen(false)}>
               Administrator
             </MobileNavLink>
           )}
-          {session && <MobileNavLink href="/dashboard" icon="▤">Dashboard</MobileNavLink>}
+          {session && (
+            <MobileNavLink href="/dashboard" icon="▤" onClick={() => setMenuOpen(false)}>
+              Dashboard
+            </MobileNavLink>
+          )}
         </nav>
 
         {/* 認証エリア */}
@@ -240,20 +247,36 @@ export function Header() {
           style={{ borderTop: '1px solid rgba(148,163,184,.08)' }}
         >
           {session ? (
-            <LogoutButton className="w-full rounded-xl px-4 py-3 text-sm font-medium text-[#9fb0cc] transition-colors hover:text-[#e5eefc] cursor-pointer text-center" style={{ background: 'rgba(255,255,255,.04)', border: '1px solid rgba(148,163,184,.1)' }} />
+            <div onClick={() => setMenuOpen(false)}>
+              <LogoutButton
+                className="w-full rounded-xl px-4 py-3 text-sm font-medium text-[#9fb0cc] transition-colors hover:text-[#e5eefc] cursor-pointer text-center"
+                style={{
+                  background: 'rgba(255,255,255,.04)',
+                  border: '1px solid rgba(148,163,184,.1)',
+                }}
+              />
+            </div>
           ) : (
             <>
               <Link
                 href="/login"
+                onClick={() => setMenuOpen(false)}
                 className="block rounded-xl px-4 py-3 text-sm font-medium text-[#9fb0cc] text-center transition-colors hover:text-[#e5eefc]"
-                style={{ background: 'rgba(255,255,255,.04)', border: '1px solid rgba(148,163,184,.1)' }}
+                style={{
+                  background: 'rgba(255,255,255,.04)',
+                  border: '1px solid rgba(148,163,184,.1)',
+                }}
               >
                 ログイン
               </Link>
               <Link
                 href="/register"
+                onClick={() => setMenuOpen(false)}
                 className="block rounded-xl px-4 py-3 text-sm font-semibold text-white text-center shadow-lg transition-opacity hover:opacity-90"
-                style={{ background: 'linear-gradient(135deg, #7c3aed, #4f46e5)', boxShadow: '0 4px 20px rgba(124,58,237,.35)' }}
+                style={{
+                  background: 'linear-gradient(135deg, #7c3aed, #4f46e5)',
+                  boxShadow: '0 4px 20px rgba(124,58,237,.35)',
+                }}
               >
                 無料登録
               </Link>
@@ -264,7 +287,9 @@ export function Header() {
         {/* デコレーションライン */}
         <div
           className="absolute bottom-0 left-0 right-0 h-px"
-          style={{ background: 'linear-gradient(90deg, transparent, #7c3aed, #06b6d4, transparent)' }}
+          style={{
+            background: 'linear-gradient(90deg, transparent, #7c3aed, #06b6d4, transparent)',
+          }}
         />
       </div>
     </>
@@ -299,15 +324,18 @@ function MobileNavLink({
   children,
   icon,
   accent,
+  onClick,
 }: {
   href: string
   children: React.ReactNode
   icon?: string
   accent?: boolean
+  onClick?: () => void
 }) {
   return (
     <Link
       href={href}
+      onClick={onClick}
       className="group flex items-center gap-3 rounded-xl px-4 py-3 text-sm font-medium transition-all"
       style={{
         color: accent ? '#10b981' : '#9fb0cc',
@@ -326,9 +354,7 @@ function MobileNavLink({
         <span
           className="grid h-7 w-7 shrink-0 place-items-center rounded-lg text-xs"
           style={{
-            background: accent
-              ? 'rgba(16,185,129,.12)'
-              : 'rgba(124,58,237,.12)',
+            background: accent ? 'rgba(16,185,129,.12)' : 'rgba(124,58,237,.12)',
             color: accent ? '#10b981' : '#7c3aed',
           }}
         >
