@@ -23,9 +23,9 @@ function extractCaption(code: string): { caption: string | undefined; cleanCode:
   if (match) {
     const content = match[1].trim()
     // ファイルパスらしい文字列（拡張子またはパス区切りを含む）かチェック
-    if (/^[\w./\\-]+$/.test(content) && (content.includes('.') || content.includes('/'))) {
-      return { caption: content, cleanCode: rest }
-    }
+    // if (/^[\w./\\-]+$/.test(content) && (content.includes('.') || content.includes('/'))) {
+    // }
+    return { caption: content, cleanCode: rest }
   }
 
   return { caption: undefined, cleanCode: code }
