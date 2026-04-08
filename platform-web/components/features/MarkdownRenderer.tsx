@@ -50,7 +50,7 @@ const components: Components = {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   code({ children, ...props }: any) {
     return (
-      <code className="bg-muted rounded px-1.5 py-0.5 text-sm font-mono" {...props}>
+      <code className="rounded border border-[#334155] bg-[#1e2a38] px-1.5 py-0.5 text-sm font-mono text-[#c4b5fd]" {...props}>
         {children}
       </code>
     )
