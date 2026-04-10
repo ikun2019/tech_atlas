@@ -97,7 +97,7 @@ export default async function ReferenceDetailPage({ params }: PageProps) {
 
       <div className="grid gap-8 lg:grid-cols-[1fr_280px]">
         {/* Main content */}
-        <div>
+        <div className="min-w-0">
           {/* Header card */}
           <div
             className="mb-6 rounded-[22px] border p-6"

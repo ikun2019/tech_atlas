@@ -72,7 +72,7 @@ function nodeToText(node: ReactNode): string {
 export function ContentRenderer({ markdown }: ContentRendererProps) {
   const processed = preprocessMarkdown(markdown)
   return (
-    <div>
+    <div className="min-w-0">
       <ReactMarkdown
         remarkPlugins={[remarkGfm]}
         components={{

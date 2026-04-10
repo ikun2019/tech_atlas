@@ -74,7 +74,7 @@ export function LessonContent({
               href={`/courses/${courseId}/chapters/${prev.chapter.id}/lessons/${prev.lesson.id}`}
             >
               <ChevronLeft className="size-4" />
-              前のレッスン
+              Prev
             </Link>
           </Button>
         ) : (
@@ -91,12 +91,12 @@ export function LessonContent({
             {completed ? (
               <>
                 <CheckCircle className="text-brand-600 size-4" />
-                完了済み
+                Complete
               </>
             ) : (
               <>
                 <Circle className="size-4" />
-                完了としてマーク
+                Complete
               </>
             )}
           </Button>
@@ -107,7 +107,7 @@ export function LessonContent({
             <Link
               href={`/courses/${courseId}/chapters/${next.chapter.id}/lessons/${next.lesson.id}`}
             >
-              次のレッスン
+              Next
               <ChevronRight className="size-4" />
             </Link>
           </Button>
