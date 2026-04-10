@@ -33,10 +33,12 @@ services:
       NEXT_PUBLIC_SUPABASE_ANON_KEY: ${NEXT_PUBLIC_SUPABASE_ANON_KEY}
       NEXT_PUBLIC_API_URL: ${NEXT_PUBLIC_API_URL}
       API_INTERNAL_URL: ${API_INTERNAL_URL}
+      NOTION_API_KEY: ${NOTION_API_KEY}
     ports:
       - "3000:3000"
     volumes:
       - ../platform-web:/app
+      - /app/node_modules
     depends_on:
       - api
     labels:
@@ -77,6 +79,7 @@ services:
       - "4000:4000"
     volumes:
       - ../platform-api:/app
+      - /app/node_modules
     depends_on:
       redis:
         condition: service_healthy

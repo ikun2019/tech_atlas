@@ -24,6 +24,8 @@ services:
       NEXT_PUBLIC_API_URL: ${NEXT_PUBLIC_API_URL}
       NEXT_PUBLIC_SUPABASE_URL: ${NEXT_PUBLIC_SUPABASE_URL}
       NEXT_PUBLIC_SUPABASE_ANON_KEY: ${NEXT_PUBLIC_SUPABASE_ANON_KEY}
+      API_INTERNAL_URL: http://api:4000/api/v1
+      NOTION_API_KEY_FILE: /run/secrets/notion_api_key
     expose:
       - '3000'
     networks:
@@ -46,6 +48,8 @@ services:
         # Basic Auth
         - traefik.http.middlewares.web-auth.basicauth.users=admin:$$2y$$05$$VMTR4v9yNHHKnF0Vy2FB2.8JCAR0XRS881xTAfbbsdy.Y9GQpN.FG
         - traefik.http.routers.web.middlewares=web-auth@swarm
+    secrets:
+      - notion_api_key
 
   api:
     image: ${API_IMAGE:-miyatto/platform-api}:${TAG}
@@ -144,4 +148,6 @@ secrets:
   sentry_dsn:
     external: true
   resend_from_email:
+    external: true
+  notion_api_key:
     external: true
