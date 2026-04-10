@@ -1,6 +1,6 @@
 import { redirect } from 'next/navigation'
 import Link from 'next/link'
-import { BarChart3, Users, BookOpen } from 'lucide-react'
+import { BarChart3, Users, BookOpen, BookMarked } from 'lucide-react'
 import { createClient } from '@/lib/supabase/server'
 import { getMeServer } from '@/lib/api/user'
 
@@ -8,6 +8,7 @@ const navItems = [
   { href: '/admin', label: 'KPI 統計', icon: BarChart3 },
   { href: '/admin/users', label: 'ユーザー管理', icon: Users },
   { href: '/admin/courses', label: 'コース管理', icon: BookOpen },
+  { href: '/admin/references', label: 'Reference管理', icon: BookMarked },
 ]
 
 export default async function AdminLayout({ children }: { children: React.ReactNode }) {

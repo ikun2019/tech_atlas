@@ -34,26 +34,6 @@ export function CodeBlock({ code, language, className, caption }: CodeBlockProps
     setTimeout(() => setCopied(false), 1500)
   }
 
-  if (isPlain) {
-    return (
-      <div
-        className={[
-          'relative my-3 overflow-hidden rounded-lg border border-gray-300 bg-gray-100 text-slate-900',
-          className ?? '',
-        ].join(' ')}
-      >
-        {caption && (
-          <div className="flex items-center border-b border-gray-300 bg-gray-100 px-3 py-1.5">
-            <span className="font-mono text-[11px] font-light text-gray-500">{caption}</span>
-          </div>
-        )}
-        <pre className="overflow-x-auto p-4 text-sm">
-          <code ref={ref} className="font-mono" />
-        </pre>
-      </div>
-    )
-  }
-
   if (caption) {
     return (
       <div
@@ -95,9 +75,13 @@ export function CodeBlock({ code, language, className, caption }: CodeBlockProps
   return (
     <div
       className={[
-        'group relative my-3 overflow-hidden rounded-lg',
+        'group relative my-3 overflow-hidden rounded-xl',
         className ?? '',
       ].join(' ')}
+      style={{
+        background: 'rgba(2,6,23,.70)',
+        border: '1px solid rgba(148,163,184,.12)',
+      }}
     >
       <link
         rel="stylesheet"
@@ -106,12 +90,21 @@ export function CodeBlock({ code, language, className, caption }: CodeBlockProps
       <button
         type="button"
         onClick={handleCopy}
-        className="absolute right-2 top-2 inline-flex size-7 items-center justify-center rounded-[min(var(--radius-md),12px)] border border-transparent bg-clip-padding text-sm font-medium opacity-0 outline-none transition-opacity hover:bg-muted hover:text-foreground group-hover:opacity-100"
+        className={[
+          'absolute right-3 top-3 grid size-7 place-items-center rounded-lg transition-all',
+          copied ? 'text-green-400' : 'text-[#4a5f7a] hover:text-[#9fb0cc]',
+        ].join(' ')}
+        style={{ background: 'rgba(148,163,184,.08)' }}
         aria-label="コードをコピー"
       >
-        <Copy className="size-3.5" />
+        <Copy className={copied ? 'hidden' : 'size-3.5'} />
+        {copied && (
+          <svg className="size-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2.5}>
+            <polyline points="20 6 9 17 4 12" />
+          </svg>
+        )}
       </button>
-      <pre className="overflow-x-auto p-4 text-sm">
+      <pre className="overflow-x-auto p-4 text-sm font-mono leading-relaxed">
         <code ref={ref} className={language ? `language-${language}` : ''} />
       </pre>
     </div>

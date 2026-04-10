@@ -1,41 +1,34 @@
-// platform-api/prisma/schema.prisma
-
 generator client {
   provider = "prisma-client-js"
 }
 
 datasource db {
-  provider = "postgresql"
-  url = env("DATABASE_URL")
+  provider  = "postgresql"
+  url       = env("DATABASE_URL")
   directUrl = env("DIRECT_URL")
 }
 
 model User {
-  id               String    @id @default(cuid())
-  supabaseId       String    @unique
-  email            String    @unique
-  name             String
-  avatarUrl        String?
-  role             Role      @default(USER)
-  stripeCustomerId String?   @unique
-  deletedAt        DateTime?
-  createdAt        DateTime  @default(now())
-  updatedAt        DateTime  @updatedAt
-
-  subscription      Subscription?
-  progresses        Progress[]
-  reviews           Review[]
-  comments          Comment[]
-  bookmarks         Bookmark[]
-  certificates      Certificate[]
-  instructorToken   InstructorToken?
-  instructorCourses Course[]          @relation("InstructorCourses")
-}
-
-enum Role {
-  USER
-  INSTRUCTOR
-  ADMIN
+  id                                           String           @id @default(cuid())
+  supabaseId                                   String           @unique
+  email                                        String           @unique
+  name                                         String
+  avatarUrl                                    String?
+  role                                         Role             @default(USER)
+  stripeCustomerId                             String?          @unique
+  deletedAt                                    DateTime?
+  createdAt                                    DateTime         @default(now())
+  updatedAt                                    DateTime         @updatedAt
+  bookmarks                                    Bookmark[]
+  certificates                                 Certificate[]
+  comments                                     Comment[]
+  instructorCourses                            Course[]         @relation("InstructorCourses")
+  instructorToken                              InstructorToken?
+  progresses                                   Progress[]
+  Purchase                                     Purchase[]
+  reviews                                      Review[]
+  Subscription_Subscription_instructorIdToUser Subscription[]   @relation("Subscription_instructorIdToUser")
+  subscription                                 Subscription[]
 }
 
 model InstructorToken {
@@ -45,8 +38,7 @@ model InstructorToken {
   workspaceName  String
   createdAt      DateTime @default(now())
   updatedAt      DateTime @updatedAt
-
-  instructor User @relation(fields: [instructorId], references: [id])
+  instructor     User     @relation(fields: [instructorId], references: [id])
 }
 
 model Category {
@@ -57,22 +49,23 @@ model Category {
 }
 
 model Course {
-  id           String   @id @default(cuid())
+  id           String        @id @default(cuid())
   title        String
   description  String
   thumbnailUrl String?
   categoryId   String
   instructorId String
-  isPublished  Boolean  @default(false)
-  createdAt    DateTime @default(now())
-  updatedAt    DateTime @updatedAt
-
-  category     Category      @relation(fields: [categoryId], references: [id])
-  instructor   User          @relation("InstructorCourses", fields: [instructorId], references: [id])
-  chapters     Chapter[]
-  reviews      Review[]
+  isPublished  Boolean       @default(false)
+  createdAt    DateTime      @default(now())
+  updatedAt    DateTime      @updatedAt
+  price        Int?
   bookmarks    Bookmark[]
   certificates Certificate[]
+  chapters     Chapter[]
+  category     Category      @relation(fields: [categoryId], references: [id])
+  instructor   User          @relation("InstructorCourses", fields: [instructorId], references: [id])
+  Purchase     Purchase[]
+  reviews      Review[]
 
   @@index([isPublished])
 }
@@ -84,24 +77,22 @@ model Chapter {
   order     Int
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
-
-  course  Course   @relation(fields: [courseId], references: [id], onDelete: Cascade)
-  lessons Lesson[]
+  course    Course   @relation(fields: [courseId], references: [id], onDelete: Cascade)
+  lessons   Lesson[]
 }
 
 model Lesson {
-  id           String   @id @default(cuid())
+  id           String     @id @default(cuid())
   chapterId    String
   title        String
   notionPageId String
   order        Int
-  isFree       Boolean  @default(false)
-  createdAt    DateTime @default(now())
-  updatedAt    DateTime @updatedAt
-
-  chapter    Chapter    @relation(fields: [chapterId], references: [id], onDelete: Cascade)
-  progresses Progress[]
-  comments   Comment[]
+  isFree       Boolean    @default(false)
+  createdAt    DateTime   @default(now())
+  updatedAt    DateTime   @updatedAt
+  comments     Comment[]
+  chapter      Chapter    @relation(fields: [chapterId], references: [id], onDelete: Cascade)
+  progresses   Progress[]
 }
 
 model Progress {
@@ -109,27 +100,104 @@ model Progress {
   userId      String
   lessonId    String
   completedAt DateTime @default(now())
-
-  user   User   @relation(fields: [userId], references: [id])
-  lesson Lesson @relation(fields: [lessonId], references: [id], onDelete: Cascade)
+  lesson      Lesson   @relation(fields: [lessonId], references: [id], onDelete: Cascade)
+  user        User     @relation(fields: [userId], references: [id])
 
   @@unique([userId, lessonId])
   @@index([userId])
 }
 
 model Subscription {
-  id                   String             @id @default(cuid())
-  userId               String             @unique
-  stripeSubscriptionId String             @unique
-  stripePriceId        String
-  status               SubscriptionStatus
-  plan                 Plan
-  currentPeriodEnd     DateTime
-  cancelAtPeriodEnd    Boolean            @default(false)
-  createdAt            DateTime           @default(now())
-  updatedAt            DateTime           @updatedAt
+  id                                   String             @id @default(cuid())
+  userId                               String
+  stripeSubscriptionId                 String             @unique
+  stripePriceId                        String
+  status                               SubscriptionStatus
+  plan                                 Plan
+  currentPeriodEnd                     DateTime
+  cancelAtPeriodEnd                    Boolean            @default(false)
+  createdAt                            DateTime           @default(now())
+  updatedAt                            DateTime           @updatedAt
+  instructorId                         String?
+  type                                 SubscriptionType   @default(PLATFORM_ALL)
+  User_Subscription_instructorIdToUser User?              @relation("Subscription_instructorIdToUser", fields: [instructorId], references: [id])
+  user                                 User               @relation(fields: [userId], references: [id])
 
-  user User @relation(fields: [userId], references: [id])
+  @@index([userId])
+}
+
+model Review {
+  id        String   @id @default(cuid())
+  userId    String
+  courseId  String
+  rating    Int
+  body      String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  course    Course   @relation(fields: [courseId], references: [id], onDelete: Cascade)
+  user      User     @relation(fields: [userId], references: [id])
+
+  @@unique([userId, courseId])
+}
+
+model Comment {
+  id        String    @id @default(cuid())
+  userId    String
+  lessonId  String
+  body      String
+  parentId  String?
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+  lesson    Lesson    @relation(fields: [lessonId], references: [id], onDelete: Cascade)
+  parent    Comment?  @relation("CommentReplies", fields: [parentId], references: [id], onDelete: Cascade)
+  replies   Comment[] @relation("CommentReplies")
+  user      User      @relation(fields: [userId], references: [id])
+}
+
+model Bookmark {
+  id        String   @id @default(cuid())
+  userId    String
+  courseId  String
+  createdAt DateTime @default(now())
+  course    Course   @relation(fields: [courseId], references: [id], onDelete: Cascade)
+  user      User     @relation(fields: [userId], references: [id])
+
+  @@unique([userId, courseId])
+}
+
+model Certificate {
+  id       String   @id @default(cuid())
+  userId   String
+  courseId String
+  uuid     String   @unique @default(uuid())
+  issuedAt DateTime @default(now())
+  course   Course   @relation(fields: [courseId], references: [id], onDelete: Cascade)
+  user     User     @relation(fields: [userId], references: [id])
+
+  @@unique([userId, courseId])
+}
+
+model Purchase {
+  id                    String         @id
+  userId                String
+  courseId              String
+  stripePaymentIntentId String         @unique
+  amount                Int
+  currency              String         @default("jpy")
+  status                PurchaseStatus @default(COMPLETED)
+  createdAt             DateTime       @default(now())
+  updatedAt             DateTime
+  Course                Course         @relation(fields: [courseId], references: [id])
+  User                  User           @relation(fields: [userId], references: [id])
+
+  @@unique([userId, courseId])
+  @@index([userId])
+}
+
+enum Role {
+  USER
+  INSTRUCTOR
+  ADMIN
 }
 
 enum SubscriptionStatus {
@@ -145,57 +213,73 @@ enum Plan {
   YEARLY
 }
 
-model Review {
-  id        String   @id @default(cuid())
-  userId    String
-  courseId  String
-  rating    Int
-  body      String?
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-
-  user   User   @relation(fields: [userId], references: [id])
-  course Course @relation(fields: [courseId], references: [id], onDelete: Cascade)
-
-  @@unique([userId, courseId])
+enum PurchaseStatus {
+  PENDING
+  COMPLETED
+  REFUNDED
 }
 
-model Comment {
-  id        String   @id @default(cuid())
-  userId    String
-  lessonId  String
-  body      String
-  parentId  String?
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-
-  user    User      @relation(fields: [userId], references: [id])
-  lesson  Lesson    @relation(fields: [lessonId], references: [id], onDelete: Cascade)
-  parent  Comment?  @relation("CommentReplies", fields: [parentId], references: [id], onDelete: Cascade)
-  replies Comment[] @relation("CommentReplies")
+enum SubscriptionType {
+  PLATFORM_ALL
+  INSTRUCTOR
 }
 
-model Bookmark {
-  id        String   @id @default(cuid())
-  userId    String
-  courseId  String
-  createdAt DateTime @default(now())
-
-  user   User   @relation(fields: [userId], references: [id])
-  course Course @relation(fields: [courseId], references: [id], onDelete: Cascade)
-
-  @@unique([userId, courseId])
+model ReferenceTechnology {
+  id          String   @id @default(cuid())
+  slug        String   @unique
+  name        String
+  description String?
+  iconUrl     String?
+  sortOrder   Int      @default(0)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
 }
 
-model Certificate {
-  id        String   @id @default(cuid())
-  userId    String
-  courseId  String
-  uuid      String   @unique @default(uuid())
-  issuedAt  DateTime @default(now())
+model ReferenceDatabase {
+  id               String      @id @default(cuid())
+  notionDatabaseId String      @unique
+  slug             String      @unique
+  name             String
+  description      String?
+  createdAt        DateTime    @default(now())
+  updatedAt        DateTime    @updatedAt
 
-  user   User   @relation(fields: [userId], references: [id])
-  course Course @relation(fields: [courseId], references: [id], onDelete: Cascade)
+  references       Reference[]
+}
 
-  @@unique([userId, courseId])
+model Reference {
+  id                  String    @id @default(cuid())
+  notionPageId        String    @unique
+  referenceDatabaseId String
+  title               String
+  description         String?
+  command             String?
+  path                String
+  techSlug            String
+  tags                String[]
+  category            String?
+  level               String?
+  no                  Int?
+  isPublished         Boolean   @default(false)
+  isFree              Boolean   @default(false)
+  syncedAt            DateTime  @default(now())
+  createdAt           DateTime  @default(now())
+  updatedAt           DateTime  @updatedAt
+
+  referenceDatabase   ReferenceDatabase  @relation(fields: [referenceDatabaseId], references: [id])
+  pageCache           ReferencePageCache?
+
+  @@index([techSlug, isPublished])
+  @@index([referenceDatabaseId])
+  @@unique([referenceDatabaseId, path])
+}
+
+model ReferencePageCache {
+  id           String   @id @default(cuid())
+  notionPageId String   @unique
+  content      Json
+  syncedAt     DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  reference    Reference @relation(fields: [notionPageId], references: [notionPageId])
 }

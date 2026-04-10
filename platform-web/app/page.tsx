@@ -2,9 +2,11 @@ import { Suspense } from 'react'
 import type { Metadata } from 'next'
 import Link from 'next/link'
 import { getCourses, getCategories } from '@/lib/api/courses'
+import { getFreeReferences } from '@/lib/api/references'
 import { CourseGrid, CourseGridSkeleton } from '@/components/features/courses/CourseGrid'
 import { CategoryFilter } from '@/components/features/courses/CategoryFilter'
 import { SearchBar } from '@/components/features/courses/SearchBar'
+import { ReferenceCard } from '@/components/features/references/ReferenceCard'
 import { Header } from '@/components/layout/Header'
 import { Footer } from '@/components/layout/Footer'
 
@@ -71,6 +73,58 @@ async function CourseList({
         </div>
       )}
     </>
+  )
+}
+
+async function ReferenceSection() {
+  const freeRefs = await getFreeReferences(6)
+  if (freeRefs.length === 0) return null
+
+  return (
+    <section id="references" className="container pb-16 pt-6">
+      <div className="mb-6 flex items-end justify-between">
+        <div>
+          <h2
+            className="text-3xl font-bold tracking-tight"
+            style={{ color: '#e5eefc', letterSpacing: '-0.6px' }}
+          >
+            Reference
+          </h2>
+          <p className="mt-1" style={{ color: '#9fb0cc' }}>
+            コマンドリファレンス。引きたいときにすぐ引ける技術辞書です。
+          </p>
+        </div>
+        <Link
+          href="/references"
+          className="shrink-0 rounded-xl border px-4 py-2 text-sm transition-colors hover:bg-white/5"
+          style={{
+            background: 'rgba(15,23,42,.55)',
+            borderColor: 'rgba(148,163,184,.18)',
+            color: '#9fb0cc',
+          }}
+        >
+          もっと探す →
+        </Link>
+      </div>
+
+      <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
+        {freeRefs.map((ref) => (
+          <ReferenceCard
+            key={ref.id}
+            reference={ref}
+            dbSlug={ref.referenceDatabase?.slug ?? ''}
+          />
+        ))}
+      </div>
+    </section>
+  )
+}
+
+function ReferenceSectionWrapper() {
+  return (
+    <Suspense fallback={null}>
+      <ReferenceSection />
+    </Suspense>
   )
 }
 
@@ -291,6 +345,9 @@ export default async function HomePage({ searchParams }: PageProps) {
             <CourseList categoryId={categoryId} search={search} page={page} />
           </Suspense>
         </section>
+
+        {/* ── Reference ─────────────────────────────── */}
+        <ReferenceSectionWrapper />
       </main>
       <Footer />
     </div>

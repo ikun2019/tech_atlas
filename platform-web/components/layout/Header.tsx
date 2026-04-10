@@ -89,6 +89,7 @@ export function Header() {
           {/* デスクトップナビゲーション */}
           <nav className="hidden items-center gap-2 md:flex">
             <NavPill href="/">Home</NavPill>
+            <NavPill href="/references">References</NavPill>
             {(role === 'INSTRUCTOR' || role === 'ADMIN') && (
               <NavPill href="/instructor" className="text-emerald-500">
                 Instructor
@@ -223,6 +224,9 @@ export function Header() {
         <nav className="flex-1 overflow-y-auto px-4 py-6 flex flex-col gap-1">
           <MobileNavLink href="/" icon="⌂" onClick={() => setMenuOpen(false)}>
             Home
+          </MobileNavLink>
+          <MobileNavLink href="/references" icon="⊞" onClick={() => setMenuOpen(false)}>
+            References
           </MobileNavLink>
           {(role === 'INSTRUCTOR' || role === 'ADMIN') && (
             <MobileNavLink href="/instructor" icon="✦" accent onClick={() => setMenuOpen(false)}>

@@ -8,6 +8,7 @@ import { LessonContent } from '@/components/features/lessons/LessonContent'
 import { LessonSidebar } from '@/components/features/lessons/LessonSidebar'
 import { SubscriptionGate } from '@/components/features/lessons/SubscriptionGate'
 import { CourseProgressBar } from '@/components/features/lessons/CourseProgressBar'
+import { TableOfContents } from '@/components/features/TableOfContents'
 import type { Chapter, Lesson } from '@/types/api'
 
 interface PageProps {
@@ -60,11 +61,11 @@ export default async function LessonPage({ params }: PageProps) {
 
   return (
     <div className="container py-6">
-      <div className="grid gap-5 lg:grid-cols-[280px_1fr]">
-        {/* サイドバー */}
+      <div className="grid gap-5 lg:grid-cols-[280px_1fr] xl:grid-cols-[280px_1fr_220px]">
+        {/* 左サイドバー: コースナビゲーション */}
         <aside className="hidden lg:block">
           <div
-            className="rounded-[22px] border p-5"
+            className="sticky top-20 rounded-[22px] border p-5"
             style={{
               background: 'linear-gradient(180deg, rgba(15,23,42,.80), rgba(15,23,42,.68))',
               borderColor: 'rgba(148,163,184,.18)',
@@ -111,6 +112,19 @@ export default async function LessonPage({ params }: PageProps) {
             </SubscriptionGate>
           </div>
         </main>
+
+        {/* 右サイドバー: 目次 */}
+        <aside className="hidden xl:block">
+          <div
+            className="sticky top-20 rounded-[22px] border p-5"
+            style={{
+              background: 'linear-gradient(180deg, rgba(15,23,42,.80), rgba(15,23,42,.68))',
+              borderColor: 'rgba(148,163,184,.18)',
+            }}
+          >
+            <TableOfContents markdown={lesson.content} variant="lesson" />
+          </div>
+        </aside>
       </div>
     </div>
   )
