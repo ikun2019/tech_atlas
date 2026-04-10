@@ -1,7 +1,7 @@
 'use server'
 
 import { revalidateTag } from 'next/cache'
-import { notion } from '@/lib/notion/client'
+import { getNotionClient } from '@/lib/notion/client'
 import { blocksToMarkdown } from '@/lib/notion/blocks-to-md'
 import { createClient } from '@/lib/supabase/server'
 import type { BlockObjectResponse } from '@notionhq/client/build/src/api-endpoints'
@@ -68,6 +68,7 @@ export async function syncDatabase(referenceDatabaseId: string): Promise<{
   ].join('-')
 
   try {
+    const notion = getNotionClient()
     do {
       const response = await notion.databases.query({
         database_id: normalizedDatabaseId,
@@ -146,7 +147,7 @@ export async function syncDatabase(referenceDatabaseId: string): Promise<{
 
     // Fetch and cache page blocks
     try {
-      const blocksResponse = await notion.blocks.children.list({
+      const blocksResponse = await getNotionClient().blocks.children.list({
         block_id: page.id,
         page_size: 100,
       })
@@ -161,7 +162,7 @@ export async function syncDatabase(referenceDatabaseId: string): Promise<{
       for (const block of blocks) {
         if (block.has_children) {
           try {
-            const childResponse = await notion.blocks.children.list({ block_id: block.id })
+            const childResponse = await getNotionClient().blocks.children.list({ block_id: block.id })
             const children = childResponse.results.filter(
               (b): b is BlockObjectResponse => 'type' in b
             )

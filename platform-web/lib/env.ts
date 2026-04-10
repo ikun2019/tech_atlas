@@ -45,5 +45,7 @@ export const env = Object.freeze({
   NEXT_PUBLIC_API_URL: raw.NEXT_PUBLIC_API_URL,
   NEXT_PUBLIC_APP_URL: raw.NEXT_PUBLIC_APP_URL,
   API_INTERNAL_URL: raw.API_INTERNAL_URL,
-  NOTION_API_KEY: readEnvOrFile('NOTION_API_KEY'),
+  get NOTION_API_KEY(): string {
+    return readEnvOrFile('NOTION_API_KEY')
+  },
 })
