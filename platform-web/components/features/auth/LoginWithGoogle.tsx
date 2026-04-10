@@ -2,7 +2,7 @@
 
 import { createClient } from '@/lib/supabase/client'
 import { Button } from '@/components/ui/button'
-import { env } from '@/lib/env'
+import { clientEnv } from '@/lib/env.client'
 
 export function LoginWithGoogle() {
   async function handleClick() {
@@ -12,7 +12,7 @@ export function LoginWithGoogle() {
       options: {
         redirectTo: new URL(
           '/auth/callback',
-          env.NEXT_PUBLIC_APP_URL || window.location.origin
+          clientEnv.NEXT_PUBLIC_APP_URL || window.location.origin
         ).toString(),
       },
     })
