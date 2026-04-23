@@ -68,7 +68,8 @@ export async function checkLessonAccess(
 		});
 	}
 
-	if (user.role === 'INSTRUCTOR' || user.role === 'ADMIN') return;
+	if (user.role === 'ADMIN') return;
+	if (user.role === 'INSTRUCTOR' && lesson.chapter.course.instructorId === user.id) return;
 
 	const active = await hasActiveSubscription(user.id);
 	if (!active) {

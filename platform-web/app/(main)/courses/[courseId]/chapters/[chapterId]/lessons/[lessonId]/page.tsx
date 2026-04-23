@@ -3,7 +3,7 @@ import type { Metadata } from 'next'
 import { createClient } from '@/lib/supabase/server'
 import { getCourse } from '@/lib/api/courses'
 import { getLessonServer } from '@/lib/api/lessons'
-import { getSubscriptionStatusServer } from '@/lib/api/user'
+import { getSubscriptionStatusServer, getMeServer } from '@/lib/api/user'
 import { LessonContent } from '@/components/features/lessons/LessonContent'
 import { LessonSidebar } from '@/components/features/lessons/LessonSidebar'
 import { SubscriptionGate } from '@/components/features/lessons/SubscriptionGate'
@@ -30,12 +30,13 @@ export default async function LessonPage({ params }: PageProps) {
 
   const isAuthenticated = !!session?.user
 
-  const [lesson, course, subscriptionStatus] = await Promise.all([
+  const [lesson, course, subscriptionStatus, me] = await Promise.all([
     getLessonServer(lessonId, session?.access_token),
     getCourse(courseId),
     session?.access_token
       ? getSubscriptionStatusServer(session.access_token)
       : Promise.resolve({ hasSubscription: false, status: null, plan: null, currentPeriodEnd: null, cancelAtPeriodEnd: false }),
+    session?.access_token ? getMeServer(session.access_token) : Promise.resolve(null),
   ])
 
   if (!lesson || !course) notFound()
@@ -49,7 +50,9 @@ export default async function LessonPage({ params }: PageProps) {
 
   const isSubscribed =
     subscriptionStatus.status === 'ACTIVE' || subscriptionStatus.status === 'TRIALING'
-  const isLocked = !lesson.isFree && !isSubscribed
+  const isAdmin = me?.role === 'ADMIN'
+  const isOwnCourse = me?.role === 'INSTRUCTOR' && course.instructorId === me.id
+  const isLocked = !lesson.isFree && !isSubscribed && !isAdmin && !isOwnCourse
 
   // 全レッスンのフラットリスト（前後ナビ用）
   const allLessons = (course.chapters ?? []).flatMap((chapter: Chapter & { lessons: Lesson[] }) =>
@@ -85,7 +88,7 @@ export default async function LessonPage({ params }: PageProps) {
               courseId={courseId}
               chapters={course.chapters ?? []}
               currentLessonId={lessonId}
-              isSubscribed={isSubscribed}
+              isSubscribed={isSubscribed || isAdmin || isOwnCourse}
             />
           </div>
         </aside>
