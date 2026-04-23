@@ -3,7 +3,7 @@ import { prisma } from '../lib/prisma.js';
 import { stripe } from '../lib/stripe.js';
 import { env, readEnvOrFile } from '../utils/env.js';
 import * as subscriptionRepository from '../repositories/subscription.repository.js';
-import type { SubscriptionStatus } from '@prisma/client';
+import type { SubscriptionStatus, SubscriptionType } from '@prisma/client';
 
 const SUB_CACHE_TTL = 300;
 
@@ -16,6 +16,7 @@ export async function hasActiveSubscription(userId: string): Promise<boolean> {
 
 	const subscription = await prisma.subscription.findFirst({
 		where: { userId },
+		orderBy: { createdAt: 'desc' },
 		select: { status: true },
 	});
 
@@ -36,6 +37,7 @@ export async function getStatus(userId: string): Promise<SubscriptionStatus | nu
 
 	const subscription = await prisma.subscription.findFirst({
 		where: { userId },
+		orderBy: { createdAt: 'desc' },
 		select: { status: true },
 	});
 
@@ -45,6 +47,21 @@ export async function getStatus(userId: string): Promise<SubscriptionStatus | nu
 	}
 
 	return status;
+}
+
+export async function getActiveSubscriptionType(userId: string): Promise<{
+	type: SubscriptionType;
+	instructorId: string | null;
+} | null> {
+	const subscription = await prisma.subscription.findFirst({
+		where: {
+			userId,
+			status: { in: ['ACTIVE', 'TRIALING'] },
+		},
+		orderBy: { createdAt: 'desc' },
+		select: { type: true, instructorId: true },
+	});
+	return subscription ?? null;
 }
 
 export async function getFullStatus(userId: string): Promise<{

@@ -53,8 +53,8 @@ export default async function CourseDetailPage({ params }: PageProps) {
 
   if (!course) notFound()
 
-  const isSubscribed = subscriptionStatus.hasSubscription
-  console.log('isSubscribed =>', isSubscribed)
+  const isSubscribed =
+    subscriptionStatus.status === 'ACTIVE' || subscriptionStatus.status === 'TRIALING'
   return (
     <div>
       {/* ヒーローセクション */}

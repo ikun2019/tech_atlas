@@ -2,7 +2,7 @@ import crypto from 'crypto';
 import { redis } from '../lib/redis.js';
 import * as courseRepository from '../repositories/course.repository.js';
 import * as progressRepository from '../repositories/progress.repository.js';
-import { hasActiveSubscription } from './subscription.service.js';
+import { hasActiveSubscription, getActiveSubscriptionType } from './subscription.service.js';
 import type { User } from '@prisma/client';
 import type { LessonWithCourseInstructor } from '../repositories/course.repository.js';
 
@@ -72,6 +72,15 @@ export async function checkLessonAccess(
 
 	const active = await hasActiveSubscription(user.id);
 	if (!active) {
+		throw Object.assign(new Error('このレッスンの閲覧にはサブスクリプションが必要です'), {
+			code: 'SUBSCRIPTION_REQUIRED',
+			statusCode: 403,
+		});
+	}
+
+	// INSTRUCTOR サブスクの場合、そのインストラクターのコースのみアクセス可能
+	const sub = await getActiveSubscriptionType(user.id);
+	if (sub?.type === 'INSTRUCTOR' && sub.instructorId !== lesson.chapter.course.instructorId) {
 		throw Object.assign(new Error('このレッスンの閲覧にはサブスクリプションが必要です'), {
 			code: 'SUBSCRIPTION_REQUIRED',
 			statusCode: 403,

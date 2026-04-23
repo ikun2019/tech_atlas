@@ -2,7 +2,7 @@ import { prisma } from '../lib/prisma.js';
 import type { Subscription, SubscriptionStatus, Plan } from '@prisma/client';
 
 export async function findByUserId(userId: string): Promise<Subscription | null> {
-  return prisma.subscription.findFirst({ where: { userId } });
+  return prisma.subscription.findFirst({ where: { userId }, orderBy: { createdAt: 'desc' } });
 }
 
 export async function upsertByStripeSubscriptionId(

@@ -47,7 +47,8 @@ export default async function LessonPage({ params }: PageProps) {
     )
   }
 
-  const isSubscribed = subscriptionStatus.hasSubscription
+  const isSubscribed =
+    subscriptionStatus.status === 'ACTIVE' || subscriptionStatus.status === 'TRIALING'
   const isLocked = !lesson.isFree && !isSubscribed
 
   // 全レッスンのフラットリスト（前後ナビ用）

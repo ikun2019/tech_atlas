@@ -134,7 +134,6 @@ export async function findChapters(courseId: string): Promise<ChapterWithLessons
     orderBy: { order: 'asc' },
     include: {
       lessons: {
-        where: { deletedAt: null },
         orderBy: { order: 'asc' },
       },
     },
