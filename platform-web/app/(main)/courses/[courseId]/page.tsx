@@ -5,7 +5,7 @@ import type { Metadata } from 'next'
 import { BookOpen, User } from 'lucide-react'
 import { createClient } from '@/lib/supabase/server'
 import { getCourse } from '@/lib/api/courses'
-import { getSubscriptionStatusServer } from '@/lib/api/user'
+import { getSubscriptionStatusServer, getMeServer } from '@/lib/api/user'
 import { Curriculum } from '@/components/features/courses/Curriculum'
 import { Button } from '@/components/ui/button'
 
@@ -38,7 +38,7 @@ export default async function CourseDetailPage({ params }: PageProps) {
     data: { session },
   } = await supabase.auth.getSession()
 
-  const [course, subscriptionStatus] = await Promise.all([
+  const [course, subscriptionStatus, me] = await Promise.all([
     getCourse(courseId),
     session?.access_token
       ? getSubscriptionStatusServer(session.access_token)
@@ -49,12 +49,16 @@ export default async function CourseDetailPage({ params }: PageProps) {
           currentPeriodEnd: null,
           cancelAtPeriodEnd: false,
         }),
+    session?.access_token ? getMeServer(session.access_token) : Promise.resolve(null),
   ])
 
   if (!course) notFound()
 
   const isSubscribed =
     subscriptionStatus.status === 'ACTIVE' || subscriptionStatus.status === 'TRIALING'
+  const isAdmin = me?.role === 'ADMIN'
+  const isOwnCourse = me?.role === 'INSTRUCTOR' && course.instructorId === me.id
+  const hasFullAccess = isSubscribed || isAdmin || isOwnCourse
   return (
     <div>
       {/* ヒーローセクション */}
@@ -109,7 +113,7 @@ export default async function CourseDetailPage({ params }: PageProps) {
                 )}
               </div>
               <div className="p-4">
-                {isSubscribed ? (
+                {hasFullAccess ? (
                   <Button className="w-full" size="lg" asChild>
                     <Link
                       href={`/courses/${course.id}/chapters/${course.chapters?.[0]?.id}/lessons/${course.chapters?.[0]?.lessons?.[0]?.id}`}
@@ -137,7 +141,7 @@ export default async function CourseDetailPage({ params }: PageProps) {
       <div className="container py-10">
         <h2 className="mb-6 text-2xl font-bold tracking-tight">カリキュラム</h2>
         {course.chapters && course.chapters.length > 0 ? (
-          <Curriculum courseId={course.id} chapters={course.chapters} isSubscribed={isSubscribed} />
+          <Curriculum courseId={course.id} chapters={course.chapters} isSubscribed={hasFullAccess} />
         ) : (
           <p className="text-muted-foreground">カリキュラムはまだ公開されていません</p>
         )}
