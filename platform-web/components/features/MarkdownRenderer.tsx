@@ -2,6 +2,7 @@
 
 import ReactMarkdown from 'react-markdown'
 import rehypeSanitize from 'rehype-sanitize'
+import remarkGfm from 'remark-gfm'
 import type { Components } from 'react-markdown'
 import { CodeBlock } from './CodeBlock'
 import { slugify } from './TableOfContents'
@@ -105,12 +106,26 @@ const components: Components = {
       {children}
     </a>
   ),
+  table: ({ children }) => (
+    <div className="my-4 overflow-x-auto rounded-lg border border-[#1e2d3d]">
+      <table className="w-full border-collapse text-sm">{children}</table>
+    </div>
+  ),
+  thead: ({ children }) => (
+    <thead style={{ backgroundColor: 'rgba(148,163,184,.08)' }}>{children}</thead>
+  ),
+  tbody: ({ children }) => <tbody>{children}</tbody>,
+  tr: ({ children }) => <tr className="border-b border-[#1e2d3d] last:border-0">{children}</tr>,
+  th: ({ children }) => (
+    <th className="px-4 py-2.5 text-left font-semibold text-[#dce8ff]">{children}</th>
+  ),
+  td: ({ children }) => <td className="px-4 py-2.5 text-[#9fb0cc]">{children}</td>,
 }
 
 export function MarkdownRenderer({ content, className }: MarkdownRendererProps) {
   return (
     <div className={`prose-slate max-w-none ${className ?? ''}`}>
-      <ReactMarkdown rehypePlugins={[rehypeSanitize]} components={components}>
+      <ReactMarkdown remarkPlugins={[remarkGfm]} rehypePlugins={[rehypeSanitize]} components={components}>
         {content}
       </ReactMarkdown>
     </div>
